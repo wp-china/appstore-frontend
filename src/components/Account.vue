@@ -2,45 +2,45 @@
   <a-skeleton :loading="loading" active/>
   <a-skeleton :loading="loading" active/>
   <a-skeleton :loading="loading" active/>
-
-    <a-card style="min-height: 400px" v-show="!loading">
-        <div style="border: 1px solid #f0f0f0;padding:0 8px 8px;">
-          <div v-for="(item,i) in userData" :key="i" style="display: flex" :class="i=== userData.length -1 ? '' : 'list-item-container'">
-            <div style="width: 220px">
-              <div class="list-item-title-container">{{item.product_name}}</div>
-              <div style="display: flex">
-                <div >
-                  <a-spin :spinning="installLoadingIds.indexOf(item.product_id) > -1">
-                    <template #indicator>
-                      <loading-outlined  style="font-size: 16px" spin />
-                    </template>
-                    <a style="width: 45px; display: block; float: left;text-align: center;" v-if="item.action_text !== '已启用'" @click="action(item,i)">{{item.action_text}}</a>
-                    <span v-else>已启用</span>
-                    <a-divider type="vertical" />
-                  </a-spin>
-                </div>
-                <div style="width: 90px; text-align: center">
-                  <a @click="showActivationCode(item)">激活码({{item.product_order_api_keys.length}}个)</a>
-                </div>
-                <div>
-                  <a-divider type="vertical" />
-                  <a @click="getDetailByProductId(item.product_id)"> 详情</a>
-                  <!--
-                  <a-divider type="vertical" />
-                  <a>演示</a>
-                  -->
-                </div>
-              </div>
-            </div>
-            <div class="list-item-content-container">
-              {{ item.product_short_description }}
-            </div>
-          </div>
+  <a-table v-if="!loading" :columns="tableColumns" :data-source="userData" bordered>
+    <template #product_name="{ text, record, index }">
+      <div class="list-item-title-container">{{text}}</div>
+      <div style="display: flex">
+        <div >
+          <a-spin :spinning="installLoadingIds.indexOf(record.product_id) > -1">
+            <template #indicator>
+              <loading-outlined  style="font-size: 16px" spin />
+            </template>
+            <a style="width: 45px; display: block; float: left;text-align: center;" v-if="record.action_text !== '已启用'" @click="action(record,index)">{{record.action_text}}</a>
+            <span v-else>已启用</span>
+            <a-divider type="vertical" />
+          </a-spin>
         </div>
-      <div style="position: absolute; bottom: 10px; right: 30px;">
-        <a-pagination :show-total="total => `共 ${total} 个项目`" :page-size="10" v-model:current="page"/>
+        <div style="width: 90px; text-align: center">
+          <a @click="showActivationCode(record)">激活码({{record.product_order_api_keys.length}}个)</a>
+        </div>
+        <div>
+          <a-spin :spinning="detailLoadingIds.indexOf(record.product_id) > -1">
+            <template #indicator>
+              <loading-outlined  style="font-size: 18px" spin />
+            </template>
+          <a-divider type="vertical" />
+          <a @click="getDetailByProductId(record.product_id)"> 详情</a>
+          </a-spin>
+          <!--
+          <a-divider type="vertical" />
+          <a>演示</a>
+          -->
+        </div>
       </div>
-      </a-card>
+    </template>
+    <template #product_short_description="{text}">
+      <div class="list-item-content-container">
+        {{ text}}
+      </div>
+    </template>
+  </a-table>
+
     <a-modal :bodyStyle="{ paddingTop: '0px',padding:0 }" :mask=false :closable=false width="800px"
              v-model:visible="shopInfoVisible">
       <div class="dialogHead" :style="{backgroundImage: 'url('+ detailData.banner +')'}" v-if="detailData.banner">
@@ -81,6 +81,22 @@ import { notification } from 'ant-design-vue';
 import Detail from "./Detail";
 import queryString from "querystring";
 import { LoadingOutlined } from '@ant-design/icons-vue';
+const tableColumns = [
+    {
+        dataIndex: 'product_name',
+        key: 'product_name',
+        title: '名称',
+        width:'220px',
+        slots: { customRender: 'product_name' },
+    },
+    {
+        title: '详情',
+        dataIndex: 'product_short_description',
+        key: 'product_short_description',
+        slots: { customRender: 'product_short_description' },
+    },
+
+];
 
 const columns = [
     {
@@ -113,6 +129,7 @@ export default {
   data() {
     return {
       columns,
+      tableColumns,
       codeData:[],
       page:1,
       loading: true,
@@ -121,6 +138,7 @@ export default {
       detailData:{},
       activationCodeDialog:false,
       installLoadingIds:[],
+        detailLoadingIds:[],
   };
   },
   methods: {
@@ -159,7 +177,7 @@ export default {
           item.product_order_api_keys.forEach((ele)=>{
             data.push({
                 key:ele.product_order_api_key,
-                activationsTotal:ele.activations_total === '0' ?  '无限制' :'',
+                activationsTotal:ele.activations_total === '0' ?  '无限制' :ele.activations_total,
                 active:ele.active,
             })
           })
@@ -167,10 +185,12 @@ export default {
           this.activationCodeDialog=true;
       },
       getDetailByProductId(id){
-        Common.WooCommerce.get(`products/${id}`)
+
+          this.detailLoadingIds.push(id);
+          Common.WooCommerce.get(`products/${id}`)
           .then((response) => {
               this.detailData = response.data;
-              console.log(this.detailData,response);
+              this.detailLoadingIds.splice(this.detailLoadingIds.indexOf(id),1);
               this.shopInfoVisible=true;
           })
       },

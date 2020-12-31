@@ -70,7 +70,17 @@
             </div>
             <div class="card-title-content-container">
                 <div class="card-title-container" v-html="shop.name"></div>
-                <div style="min-height: 70px; height: 70px;overflow: hidden" v-html="shop.short_description"></div>
+                <div style="
+                min-height: 70px;
+                height: 70px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;"
+                     v-html="shop.short_description">
+
+                </div>
               <div>开发者：<a>{{ shop.author ? shop.author.name : shop.sold_by}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
