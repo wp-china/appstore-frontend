@@ -1,7 +1,7 @@
 <template>
   <a-layout style="background: transparent">
-    <a-layout-header style="height: 52px; line-height: 52px; background: white; padding: 0 0; border: 1px solid #ccd0d4;">
-      <div style="display: flex;justify-content:space-between">
+    <a-layout-header style="height: 52px; line-height: 52px; background: white; padding: 0 0;">
+      <div style="display: flex;justify-content:space-between;width: 100%">
         <a-menu
           theme="white"
           mode="horizontal"
@@ -79,7 +79,6 @@ export default {
   data() {
     return {
       selectedKeys: ['1'],
-
     };
   },
   created() {
@@ -104,8 +103,8 @@ export default {
   }
 };
 </script>
-<style>
-.ant-rate-star:not(:last-child) {
-  margin-right: 0 !important;
-}
+<style scoped>
+  :global(.ant-menu-horizontal){
+     border: none !important;
+  }
 </style>

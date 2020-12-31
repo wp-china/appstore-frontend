@@ -1,48 +1,44 @@
 <template>
   <div v-if="pageDisable">
-  <a-row :gutter="[16, 16]" v-if="pageDisable">
-    <a-col :style="{paddingTop: 0}">
-      <a-card>
-        <p style="margin-bottom: 5px;">
-          插件价格：
-          <a-radio-group value="a" @change="onChange">
-            <a-radio-button value="a">
-              全部
-            </a-radio-button>
-            <a-radio-button value="b">
-              免费
-            </a-radio-button>
-            <a-radio-button value="c">
-              付费
-            </a-radio-button>
-            <a-radio-button value="d">
-              含免费
-            </a-radio-button>
-          </a-radio-group>
-        </p>
-        <p style="margin: 0;">
-          插件分类：
-          <a-radio-group value="a" @change="onChange">
-            <a-radio-button value="a">
-              全部
-            </a-radio-button>
-            <a-radio-button value="b">
-              富强
-            </a-radio-button>
-            <a-radio-button value="c">
-              民主
-            </a-radio-button>
-            <a-radio-button value="d">
-              文明
-            </a-radio-button>
-            <a-radio-button value="d">
-              和谐
-            </a-radio-button>
-          </a-radio-group>
-        </p>
-      </a-card>
-    </a-col>
-  </a-row>
+    <a-card style="margin: 10px 0">
+      <p style="margin-bottom: 5px;">
+        插件价格：
+        <a-radio-group value="a" @change="onChange">
+          <a-radio-button value="a">
+            全部
+          </a-radio-button>
+          <a-radio-button value="b">
+            免费
+          </a-radio-button>
+          <a-radio-button value="c">
+            付费
+          </a-radio-button>
+          <a-radio-button value="d">
+            含免费
+          </a-radio-button>
+        </a-radio-group>
+      </p>
+      <p style="margin: 0;">
+        插件分类：
+        <a-radio-group value="a" @change="onChange">
+          <a-radio-button value="a">
+            全部
+          </a-radio-button>
+          <a-radio-button value="b">
+            富强
+          </a-radio-button>
+          <a-radio-button value="c">
+            民主
+          </a-radio-button>
+          <a-radio-button value="d">
+            文明
+          </a-radio-button>
+          <a-radio-button value="d">
+            和谐
+          </a-radio-button>
+        </a-radio-group>
+      </p>
+    </a-card>
 
   <a-skeleton :loading="loading" active/>
   <a-skeleton :loading="loading" active/>
@@ -133,7 +129,7 @@
       </a-spin>
     </a-col>
   </a-row>
-    <div style="text-align: right">
+    <div style="text-align: right;margin-top: 10px">
       <a-pagination :disabled="paginationDisable" @change=loadPageData :total="shopTotal"
                     :show-total="total => `共 ${total} 个项目`" :page-size="12" v-model:current="page"/>
     </div>

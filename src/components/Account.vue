@@ -263,7 +263,6 @@ export default {
     margin-bottom: 4px;
     color: rgba(0, 0, 0, 0.65);
     font-size: 15px;
-    font-weight: 600;
     line-height: 22px;
     width: 220px;
     overflow: hidden;
@@ -273,7 +272,6 @@ export default {
   }
   .list-item-content-container{
     height: 48px;
-    margin-left: 20px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -283,7 +281,6 @@ export default {
   .dialogHead{
     height: 250px;
     width: 800px;
-    background-image: url("../assets/detailImage.jpg");
     background-repeat: round;
   }
   .dialogHead-title{
@@ -308,7 +305,6 @@ export default {
     padding: 20px 10px;
     border: 1px solid #f0f0f0;
     font-size: 24px;
-    font-weight: 600;
     color: #000;
   }
 
