@@ -9,6 +9,7 @@
       :xs="24"
     >
     <a-card title="供应商入驻">
+      <a-spin :spinning="loading">
       <div>
         <a-form
           ref="ruleForm"
@@ -33,10 +34,16 @@
             <a-input v-model:value="form.confirm_email" placeholder="确认邮件地址" />
           </a-form-item>
           <a-form-item ref="vendor_name" label="商家名称" name="vendor_name">
-            <a-input v-model:value="form.vendor_name" placeholder="商家名称" />
+            <a-input v-model:value="form.vendor_name" placeholder="商家名称">
+              <template #suffix>
+                <a-tooltip title="这是客户购买您的产品时看到的名称。请慎重选择。">
+                  <info-circle-outlined style="color: rgba(0,0,0,.45)" />
+                </a-tooltip>
+              </template>
+            </a-input>
           </a-form-item>
 <!--          <span>重要：这是客户购买您的产品时看到的名称。请慎重选择。</span>-->
-          <a-form-item ref="vendor_description" label="您的公司和您卖的东西" name="vendor_description" :label-col="{span:8}"  :wrapper-col="{ span: 16}">
+          <a-form-item ref="vendor_description" label="商家介绍" name="vendor_description">
             <a-textarea
               v-model:value="form.vendor_description"
               placeholder="请描述一下您的公司和您卖的东西"
@@ -44,22 +51,29 @@
             />
           </a-form-item>
           <div style="text-align: center">
-            <a-button type="primary" @click="onSubmit">
+            <a-button type="primary" @click="onSubmit" shape="round">
               注册
             </a-button>
-            <a-button style="margin-left: 10px;" @click="resetForm">
+            <a-button style="margin-left: 10px;" @click="resetForm" shape="round">
               重置
             </a-button>
           </div>
         </a-form>
       </div>
+      </a-spin>
     </a-card>
     </a-col>
   </a-row>
 </template>
 <script>
+    import {InfoCircleOutlined} from '@ant-design/icons-vue'
     import queryString from 'querystring';
+    import {notification} from "ant-design-vue";
+
     export default {
+      components:{
+          InfoCircleOutlined
+      },
       data(){
           let validateEmail = async () => {
                   if (this.form.confirm_email !== '') {
@@ -78,26 +92,23 @@
               labelCol: { span: 5 },
               wrapperCol: { span: 16 },
               form: {
-                  firstname: '244348846@qq.com',
-                  lastname: '244348846@qq.com',
-                  username: '244348846@qq.com',
-                  email: '244348846@qq.com',
-                  confirm_email: '244348846@qq.com',
-                  vendor_name: '244348846@qq.com',
-                  vendor_description: '244348846@qq.com',
+                  firstname: '',
+                  lastname: '',
+                  username: '',
+                  email: '',
+                  confirm_email: '',
+                  vendor_name: '',
+                  vendor_description: '',
               },
               rules: {
                   firstname: [
                       { required: true, message: '名字为必填项', trigger: 'blur' },
-                      // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
                   ],
                   lastname: [
                       { required: true, message: '名字为必填项', trigger: 'blur' },
-                      // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
                   ],
                   username: [
                       { required: true, message: '用户名为必填项', trigger: 'blur' },
-                      // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
                   ],
                   email: [
                       { required: true, message: '电子信箱为必填项', trigger: 'blur' },
@@ -112,13 +123,12 @@
                   ],
                   vendor_name: [
                       { required: true, message: '商家名称为必填项', trigger: 'blur' },
-                      // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
                   ],
                   vendor_description: [
                       { required: true, message: '简介为必填项', trigger: 'blur' },
-                      // { min: 3, max: 5, message: 'Length should be 3 to 5', trigger: 'blur' },
                   ],
               },
+              loading:false,
           }
       },
       methods:{
@@ -129,14 +139,21 @@
                   .then(() => {
                       const formData = new FormData();
                       formData.append('action','wc_product_vendors_registration')
-                      formData.append('form_items',encodeURI(queryString.stringify(this.form)))
+                      formData.append('form_items',queryString.stringify(this.form))
 
-                      console.log('values', this.form);
+                      this.loading=true;
                       this.axios.post('https://mall.wp-china.org/wp-admin/admin-ajax.php', formData,{ headers: {
                               'Content-Type': 'multipart/form-data'}}).then((response)=>{
-                          console.log(response)
+                          if(response.data === 'success'){
+                              notification.success({
+                                  message: '提交成功',
+                                  description:'',
+                              });
+                          }
+                          this.loading=false;
                       }).catch( res => {
                           console.log(res)
+                          this.loading=false;
                       })
                   })
                   .catch(error => {

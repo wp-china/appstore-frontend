@@ -1,34 +1,52 @@
 <template>
   <a-layout style="background: transparent">
     <a-layout-header style="height: 52px; line-height: 52px; background: white; padding: 0 0; border: 1px solid #ccd0d4;">
-      <a-menu
+      <div style="display: flex;justify-content:space-between">
+        <a-menu
           theme="white"
           mode="horizontal"
           v-model:selectedKeys="selectedKeys"
           style="height: 50px; line-height: 50px;"
           class="menu"
-      >
-        <a-menu-item key="1">
-          <router-link to="/">
-            插件
-          </router-link>
-        </a-menu-item>
-        <a-menu-item key="2">
-          <router-link to="/themes">
-            主题
-          </router-link>
-        </a-menu-item>
-        <a-menu-item key="3">
-          <router-link to="/account">
-            已购
-          </router-link>
-        </a-menu-item>
-        <a-menu-item key="4">
-          <router-link to="enter">
-            入驻
-          </router-link>
-        </a-menu-item>
-      </a-menu>
+        >
+          <a-menu-item key="1">
+            <router-link to="/">
+              插件
+            </router-link>
+          </a-menu-item>
+          <a-menu-item key="2">
+            <router-link to="/themes">
+              主题
+            </router-link>
+          </a-menu-item>
+          <a-menu-item key="3">
+            <router-link to="/account">
+              已购
+            </router-link>
+          </a-menu-item>
+          <a-menu-item key="4">
+            <router-link to="enter">
+              入驻
+            </router-link>
+          </a-menu-item>
+        </a-menu>
+        <div style="margin-top: 10px;width: 360px">
+          <a-input-group compact v-if="selectedKeys[0] ==='1' || selectedKeys[0] ==='2'">
+            <a-select default-value="1" style="width: 110px">
+              <a-select-option value="1">
+                {{getPlaceholder()}}名
+              </a-select-option>
+              <a-select-option value="2">
+                {{getPlaceholder()}}slug
+              </a-select-option>
+              <a-select-option value="3">
+                供应商名称
+              </a-select-option>
+            </a-select>
+            <a-input style="width: 67%" :placeholder="'搜索'+getPlaceholder()+'...'"/>
+          </a-input-group>
+        </div>
+      </div>
     </a-layout-header>
     <a-layout-content style="padding: 0 0;">
       <div style="margin: 10px 0">
@@ -59,6 +77,7 @@ export default {
   data() {
     return {
       selectedKeys: ['1'],
+
     };
   },
   created() {
@@ -75,6 +94,11 @@ export default {
 
     console.log(store_url + endpoint + '?' + query_string);
 
+  },
+  methods:{
+      getPlaceholder(){
+          return this.selectedKeys[0] === '1' ? '插件' : '主题';
+      }
   }
 };
 </script>

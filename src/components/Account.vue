@@ -41,9 +41,11 @@
       </a-card>
     <a-modal :bodyStyle="{ paddingTop: '0px',padding:0 }" :mask=false :closable=false width="800px"
              v-model:visible="shopInfoVisible">
-      <div class="dialogHead">
+      <div class="dialogHead" :style="{backgroundImage: 'url('+ detailData.banner +')'}" v-if="detailData.banner">
         <div class="dialogHead-title">{{detailData.name}}</div>
       </div>
+
+      <div v-else class="dialogHead-title-noImage">{{detailData.name}}</div>
       <Detail :detailData="detailData" />
       <template v-slot:footer>
         <a-button key="back" @click="handleCancel">
@@ -163,13 +165,11 @@ export default {
           this.activationCodeDialog=true;
       },
       getDetailByProductId(id){
-          this.loading=true;
         Common.WooCommerce.get(`products/${id}`)
           .then((response) => {
               this.detailData = response.data;
               console.log(this.detailData,response);
               this.shopInfoVisible=true;
-              this.loading=false;
           })
       },
       handleCancel(){
@@ -281,4 +281,13 @@ export default {
     border-radius: 8px;
     margin-left: 20px;
   }
+
+  .dialogHead-title-noImage{
+    padding: 20px 10px;
+    border: 1px solid #f0f0f0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+  }
+
 </style>

@@ -3,20 +3,6 @@
   <a-row :gutter="[16, 16]" v-if="pageDisable">
     <a-col :style="{paddingTop: 0}">
       <a-card>
-        <div style="margin-bottom: 5px;">
-        <div>模糊查询:</div>
-        <a-input-group compact>
-          <a-select default-value="Zhejiang">
-            <a-select-option value="Zhejiang">
-              Zhejiang
-            </a-select-option>
-            <a-select-option value="Jiangsu">
-              Jiangsu
-            </a-select-option>
-          </a-select>
-          <a-input style="width: 50%" default-value="Xihu District, Hangzhou" />
-        </a-input-group>
-        </div>
         <p style="margin-bottom: 5px;">
           插件价格：
           <a-radio-group value="a" @change="onChange">
@@ -83,14 +69,9 @@
               </a-card-meta>
             </div>
             <div class="card-title-content-container">
-              <a-tooltip placement="topLeft">
-                <template v-slot:title>
-                  <span>{{ shop.name ? shop.name : '' }}</span>
-                </template>
-                <div class="card-title-container">{{ shop.name ? shop.name : '' }}</div>
-              </a-tooltip>
-                <div style="min-height: 70px; height: 70px;overflow: hidden">{{shop.short_description}}</div>
-              <div>开发者：<a>{{ shop.author ? shop.author.name : ''}}</a></div>
+                <div class="card-title-container" v-html="shop.name"></div>
+                <div style="min-height: 70px; height: 70px;overflow: hidden" v-html="shop.short_description"></div>
+              <div>开发者：<a>{{ shop.author ? shop.author.name : shop.sold_by}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
               <div>
@@ -150,9 +131,11 @@
     <a-modal :bodyStyle="{ paddingTop: '0px',padding:0 }" :mask=false :closable=false width="800px"
              v-model:visible="shopInfoVisible" @ok="handleOk">
 
-        <div class="dialogHead">
+        <div class="dialogHead" :style="{backgroundImage: 'url('+ detailData.banner +')'}" v-if="detailData.banner">
           <div class="dialogHead-title">{{detailData.name}}</div>
         </div>
+
+        <div v-else class="dialogHead-title-noImage">{{detailData.name}}</div>
 
        <Detail :detailData="detailData" />
 
@@ -315,6 +298,8 @@ export default {
             }}).then((response) => {
 
             if (response.data.success) {
+                this.cookie.set('consumer_key',response.data.data.appstore_key.consumer_key);
+                this.cookie.set('consumer_secret',response.data.data.appstore_key.consumer_secret);
                 const params = {
                     page: vm.page,
                     per_page:12,
@@ -381,7 +366,7 @@ export default {
   .dialogHead{
     height: 250px;
     width: 800px;
-    background-image: url("../assets/detailImage.jpg");
+    /*background-image: url("../assets/detailImage.jpg");*/
     background-repeat: round;
   }
   .dialogHead-title{
@@ -400,6 +385,13 @@ export default {
     box-shadow: 0 0 30px rgba(255,255,255,.1);
     border-radius: 8px;
     margin-left: 20px;
+  }
+  .dialogHead-title-noImage{
+    padding: 20px 10px;
+    border: 1px solid #f0f0f0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
   }
   :global(.ant-tabs-bar){
     margin:0 !important;;

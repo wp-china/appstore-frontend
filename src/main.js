@@ -29,6 +29,7 @@ import Themes from './components/Themes'
 import HelloWorld from './components/HelloWorld'
 import Account from './components/Account'
 import EnterSupplier from './components/EnterSupplier'
+import cookie from "js-cookie"
 
 import axios from 'axios'
 import VueAxios from 'vue-axios'
@@ -45,8 +46,7 @@ const router = createRouter({
     routes
 })
 
-
-createApp(App)
+const app = createApp(App)
     .use(Button)
     .use(Layout)
     .use(Menu)
@@ -76,4 +76,5 @@ createApp(App)
     .use(Input)
     .use(Select)
     .use(VueAxios, axios)
-    .mount('#app')
+app.config.globalProperties.cookie=cookie;
+app.mount('#app');
