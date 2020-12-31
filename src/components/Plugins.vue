@@ -258,7 +258,7 @@ export default {
             // 换取支付宝支付网关URL
             const params = {
               key: response.data.order_key,
-              return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes/wp-china-yes.php&appstore_path=account'
+              return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes1%2Fwp-china-yes.php&appstore_path=account'
             };
             var paymentWindow = window.open();
 
