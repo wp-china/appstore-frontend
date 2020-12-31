@@ -90,7 +90,7 @@
                 <div class="card-title-container">{{ shop.name ? shop.name : '' }}</div>
               </a-tooltip>
                 <div style="min-height: 70px; height: 70px;overflow: hidden">{{shop.short_description}}</div>
-              <div>开发者：<a>{{ shop.author.name}}</a></div>
+              <div>开发者：<a>{{ shop.author ? shop.author.name : ''}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
               <div>
@@ -114,8 +114,13 @@
                   {{ shop.action_text }}
                 </template>
               </a-button>
-              <a-button v-else style="margin-top: 5px; margin-bottom: 5px;" type="primary" shape="round" :size="100"
-                        @click="newOrder(i)">
+              <a-button
+                v-else
+                style="margin-top: 5px; margin-bottom: 5px;"
+                shape="round"
+                :size="100"
+                @click="newOrder(i)"
+              >
                 <template v-slot:icon>
                   <ShoppingOutlined/>
                   购买
@@ -267,6 +272,7 @@ export default {
               return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes/wp-china-yes.php&appstore_path=account'
             };
             var paymentWindow = window.open();
+
             paymentWindow.location.href = 'https://mall.wp-china.org/checkout/order-pay/' + response.data.id + '?' + queryString.stringify(params);
 
             vm.shops[i].spinning = false;
