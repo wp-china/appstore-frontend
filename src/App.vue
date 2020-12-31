@@ -38,6 +38,7 @@
         <router-view></router-view>
       </div>
     </a-layout-content>
+    <!--
     <a-layout-footer style="background: transparent; padding: 0 0;">
       <h2>赞助商</h2>
       项目所有资金及资源需求均由赞助商及用户捐助，以下列出项目主要赞助者：
@@ -50,6 +51,7 @@
         </a-card>
       </p>
     </a-layout-footer>
+    -->
   </a-layout>
 </template>
 <script>

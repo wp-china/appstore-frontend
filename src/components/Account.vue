@@ -24,9 +24,11 @@
                 </div>
                 <div>
                   <a-divider type="vertical" />
-                  <a @click="getDetailByProductId(item.product_id)">详情</a>
+                  <a @click="getDetailByProductId(item.product_id)"> 详情</a>
+                  <!--
                   <a-divider type="vertical" />
                   <a>演示</a>
+                  -->
                 </div>
               </div>
             </div>
