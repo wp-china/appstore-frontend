@@ -3,41 +3,38 @@
     <a-card style="margin: 10px 0">
       <p style="margin-bottom: 5px;">
         插件价格：
-        <a-radio-group value="a" @change="onChange">
-          <a-radio-button value="a">
+        <a-radio-group  @change="searchPriceChange" default-value="0" >
+          <a-radio-button value="0">
             全部
           </a-radio-button>
-          <a-radio-button value="b">
-            免费
-          </a-radio-button>
-          <a-radio-button value="c">
+          <a-radio-button value="1">
             付费
           </a-radio-button>
-          <a-radio-button value="d">
-            含免费
+          <a-radio-button value="2">
+            免费
           </a-radio-button>
         </a-radio-group>
       </p>
-      <p style="margin: 0;">
-        插件分类：
-        <a-radio-group value="a" @change="onChange">
+      <p style="margin-bottom: 5px;">
+        排序方式：
+        <a-radio-group default-value="a" @change="searchSortChange">
           <a-radio-button value="a">
-            全部
+            综合
           </a-radio-button>
           <a-radio-button value="b">
-            富强
+            热门
           </a-radio-button>
           <a-radio-button value="c">
-            民主
-          </a-radio-button>
-          <a-radio-button value="d">
-            文明
-          </a-radio-button>
-          <a-radio-button value="d">
-            和谐
+            最新
           </a-radio-button>
         </a-radio-group>
       </p>
+      <div class="hot-label-container">
+        热门标签：
+          <a-tag v-for="item in labelList" :key="item.id" :color=" selectedLabelIds.indexOf(item.id) > -1 ?  'blue' : ''" @click="hotLabelTagClick(item.id)" >
+            {{item.name}}
+          </a-tag>
+      </div>
     </a-card>
 
   <a-skeleton :loading="loading" active/>
@@ -77,7 +74,7 @@
                      v-html="shop.short_description">
 
                 </div>
-              <div>开发者：<a>{{ shop.author ? shop.author.name : shop.sold_by}}</a></div>
+              <div class="card-author-container">开发者：<a>{{ shop.author ? shop.author.name : shop.sold_by}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
               <div>
@@ -129,7 +126,7 @@
       </a-spin>
     </a-col>
   </a-row>
-    <div style="text-align: right;margin-top: 10px">
+    <div style="text-align: right;margin-top: 10px" v-if="!loading">
       <a-pagination :disabled="paginationDisable" @change=loadPageData :total="shopTotal"
                     :show-total="total => `共 ${total} 个项目`" :page-size="12" v-model:current="page"/>
     </div>
@@ -191,6 +188,7 @@ export default {
     return {
       shops: null,
       shopTotal: 0,
+      searchPrice:'0',
       page: 1,
       loading: true,
       buttonLoadingIds:[],
@@ -200,6 +198,8 @@ export default {
       payment: false,
       new_order: false,
       pageDisable:true,
+      labelList:[],
+      selectedLabelIds:[],
       detailData:{
         name:''
       },
@@ -237,9 +237,8 @@ export default {
         }
     },
     newOrder(i) {
-      let vm = this;
 
-      vm.shops[i].spinning = true;
+      this.shops[i].spinning = true;
 
       // 下单
       const data = {
@@ -247,7 +246,7 @@ export default {
         payment_method_title: "支付宝",
         line_items: [
           {
-            product_id: vm.shops[i].id,
+            product_id: this.shops[i].id,
             quantity: 1
           }
         ]
@@ -264,7 +263,7 @@ export default {
 
             paymentWindow.location.href = 'https://mall.wp-china.org/checkout/order-pay/' + response.data.id + '?' + queryString.stringify(params);
 
-            vm.shops[i].spinning = false;
+            this.shops[i].spinning = false;
 
             console.log(response.data);
           })
@@ -292,25 +291,35 @@ export default {
     },
 
     loadPageData() {
-      let vm = this;
-
-      vm.loading = true;
-      vm.paginationDisable = true;
-      vm.shops = null;
-
+      this.loading = true;
+      this.paginationDisable = true;
+      this.shops = null;
 
         this.axios.get('/wp-json/wcy/v1/plugins', {headers: {
                 'X-WP-Nonce': getQueryVariable('_wpnonce')
             }}).then((response) => {
 
             if (response.data.success) {
+              // 获取热门标签
+              this.axios.get('https://mall.wp-china.org/wp-json/was/v1/products/tags?order=desc&orderby=count').then((data)=>{
+                this.labelList=data.data;
+              })
                 this.cookie.set('consumer_key',response.data.data.appstore_key.consumer_key);
                 this.cookie.set('consumer_secret',response.data.data.appstore_key.consumer_secret);
                 const params = {
-                    page: vm.page,
+                    page: this.page,
                     per_page:12,
-                    category:15
+                    category:15,
                 };
+              // 插件价格
+              if(this.searchPrice === '1'){
+                params.min_price=0.01;
+
+              }
+              if(this.searchPrice==='2'){
+                params.max_price=0.01;
+              }
+
                 queryString.stringify(params)
                 Common.WooCommerce.get("products/?" + queryString.stringify(params))
                     .then((all) => {
@@ -331,8 +340,8 @@ export default {
                             this.shops = shops;
                             this.shopTotal = all.headers['x-wp-total'];
                         })
-                        vm.loading = false;
-                        vm.paginationDisable = false;
+                        this.loading = false;
+                        this.paginationDisable = false;
                     }).catch((error) => {
                         console.log(error.response.data);
                     });
@@ -349,8 +358,30 @@ export default {
                 });
             }
         })
-    }
+    },
+
+    searchPriceChange(e){
+      this.searchPrice=e.target.value
+      this.page=1;
+      this.loadPageData();
+    },
+      searchSortChange(e){
+        console.log(e);
+        // this.searchPrice=e.target.value
+        // this.page=1;
+        // TODO 调用接口
+    },
+
+    hotLabelTagClick(id){
+      if(this.selectedLabelIds.indexOf(id) >-1){
+        this.selectedLabelIds.splice(this.selectedLabelIds.indexOf(id),1);
+      }else{
+        this.selectedLabelIds.push(id);
+      }
+      // TODO 调用查询
+    },
   },
+
   created() {
     this.loadPageData();
   }
@@ -369,10 +400,14 @@ export default {
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  .card-author-container{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .dialogHead{
     height: 250px;
     width: 800px;
-    /*background-image: url("../assets/detailImage.jpg");*/
     background-repeat: round;
   }
   .dialogHead-title{
@@ -406,5 +441,22 @@ export default {
     float: none;
     text-align: center;
   }
+  .hot-label-container{
+    line-height: 32px;
+  }
+  :global(.hot-label-container .ant-tag){
+    padding: 4px 8px !important;
+    cursor: pointer;
+    font-size: 14px !important;
+    margin-bottom: 8px;
+    background: #ffffff;
+  }
+:global(.hot-label-container .ant-tag:hover){
+  padding: 4px 8px !important;
+  cursor: pointer;
+  color:#1890ff;
+  font-size: 14px !important;
+  margin-bottom: 8px;
+}
 
 </style>
