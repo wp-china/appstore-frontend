@@ -55,7 +55,7 @@
         </a-button>
       </template>
     </a-modal>
-    <a-modal :title="false" v-model:visible="activationCodeDialog" width="630px">
+    <a-modal :title="false" v-model:visible="activationCodeDialog" :mask=false width="630px">
       <a-table
         :columns="columns"
         :data-source="codeData"
