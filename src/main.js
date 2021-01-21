@@ -24,11 +24,10 @@ import {
 } from 'ant-design-vue';
 import 'ant-design-vue/dist/antd.css';
 import { createRouter, createWebHashHistory } from 'vue-router'
-import Plugins from './components/Plugins'
-import Themes from './components/Themes'
-import HelloWorld from './components/HelloWorld'
-import Account from './components/Account'
-import EnterSupplier from './components/EnterSupplier'
+import Plugins from './views/Plugins'
+import Themes from './views/Themes'
+import Account from './views/Account'
+import EnterSupplier from './views/EnterSupplier'
 import cookie from "js-cookie"
 
 import axios from 'axios'
@@ -37,7 +36,6 @@ import VueAxios from 'vue-axios'
 const routes = [
     {path: '/', component: Plugins},
     {path: '/themes', component: Themes},
-    {path: '/hello', component: HelloWorld},
     {path: '/account', component: Account},
     {path: '/enter', component: EnterSupplier}
 ]

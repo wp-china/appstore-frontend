@@ -76,9 +76,9 @@
 </template>
 <script>
 import Common from "@/components/Common";
-import { getQueryVariable } from '../utils/utils.ts';
+import { getQueryVariable } from '@/utils/utils.ts';
 import { notification } from 'ant-design-vue';
-import Detail from "./Detail";
+import Detail from "@/components/Detail";
 import queryString from "querystring";
 import { LoadingOutlined } from '@ant-design/icons-vue';
 const tableColumns = [
@@ -225,7 +225,6 @@ export default {
                           }
                       }else {
                           element.action_text = '安装';
-
                       }
                   })
                   this.userData = userData;
@@ -242,8 +241,13 @@ export default {
           .catch((error) => {
             console.log(error.response.data);
           });
+    },
+    pageReload(value){
+      console.log(value);
+      this.loadPageData();
     }
   },
+
 
   created() {
     this.loadPageData();

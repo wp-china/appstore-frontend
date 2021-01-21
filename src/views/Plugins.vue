@@ -72,9 +72,8 @@
                 -webkit-line-clamp: 3;
                 -webkit-box-orient: vertical;"
                      v-html="shop.short_description">
-
                 </div>
-              <div class="card-author-container">开发者：<a>{{ shop.author ? shop.author.name : shop.sold_by}}</a></div>
+              <div class="card-author-container">开发者：<a>{{ shop.author && shop.author.name ? shop.author.name : shop.sold_by}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
               <div>
@@ -170,10 +169,10 @@ import {
 } from '@ant-design/icons-vue';
 import {Modal, notification} from 'ant-design-vue';
 
-import Common from './Common';
+import Common from '@/components/Common';
 import queryString from 'querystring';
-import { getQueryVariable } from '../utils/utils.ts';
-import Detail from './Detail'
+import { getQueryVariable } from '@/utils/utils.ts';
+import Detail from '@/components/Detail'
 
 export default {
   components: {
@@ -200,6 +199,7 @@ export default {
       pageDisable:true,
       labelList:[],
       selectedLabelIds:[],
+      searchQuery:'',
       detailData:{
         name:''
       },
@@ -237,9 +237,7 @@ export default {
         }
     },
     newOrder(i) {
-
       this.shops[i].spinning = true;
-
       // 下单
       const data = {
         payment_method: "alipay",
@@ -279,13 +277,15 @@ export default {
       this.detailData= {...data,index};
       this.shopInfoVisible = true;
     },
+
     handleOk() {
-      this.shopInfoLoading = true;
-      setTimeout(() => {
-        this.shopInfoVisible = false;
-        this.shopInfoLoading = false;
-      }, 3000);
-    },
+    this.shopInfoLoading = true;
+    setTimeout(() => {
+      this.shopInfoVisible = false;
+      this.shopInfoLoading = false;
+    }, 3000);
+  },
+
     handleCancel() {
       this.shopInfoVisible = false;
     },
@@ -314,14 +314,13 @@ export default {
               // 插件价格
               if(this.searchPrice === '1'){
                 params.min_price=0.01;
-
               }
               if(this.searchPrice==='2'){
                 params.max_price=0.01;
               }
 
                 queryString.stringify(params)
-                Common.WooCommerce.get("products/?" + queryString.stringify(params))
+                Common.WooCommerce.get("products/?" + queryString.stringify(params)+this.searchQuery)
                     .then((all) => {
                         const shops = all.data;
                         const plugins = response.data.data.plugins;
@@ -337,11 +336,11 @@ export default {
                             } else {
                                 shop.action_text = '安装';
                             }
-                            this.shops = shops;
-                            this.shopTotal = all.headers['x-wp-total'];
                         })
-                        this.loading = false;
-                        this.paginationDisable = false;
+                      this.shops = shops;
+                      this.shopTotal = all.headers['x-wp-total'];
+                      this.loading = false;
+                      this.paginationDisable = false;
                     }).catch((error) => {
                         console.log(error.response.data);
                     });
@@ -380,6 +379,10 @@ export default {
       }
       // TODO 调用查询
     },
+      pageReload(query){
+        this.searchQuery=query;
+       this.loadPageData();
+      }
   },
 
   created() {

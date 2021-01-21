@@ -134,7 +134,6 @@
 <style scoped>
   .detail-container img{
       max-width: 100%;
-
   }
   iframe{
     width: 480px !important;

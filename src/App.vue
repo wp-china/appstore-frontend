@@ -1,61 +1,4 @@
 <template>
-  <a-layout style="background: transparent">
-    <a-layout-header style="height: 52px; line-height: 52px; background: white; padding: 0 0;">
-      <div style="display: flex;justify-content:space-between;width: 100%">
-        <a-menu
-          theme="white"
-          mode="horizontal"
-          v-model:selectedKeys="selectedKeys"
-          style="height: 50px; line-height: 50px;"
-          class="menu"
-        >
-          <a-menu-item key="1">
-            <router-link to="/">
-              插件
-            </router-link>
-          </a-menu-item>
-          <a-menu-item key="2">
-            <router-link to="/themes">
-              主题
-            </router-link>
-          </a-menu-item>
-          <a-menu-item key="3">
-            <router-link to="/account">
-              已购
-            </router-link>
-          </a-menu-item>
-          <a-menu-item key="4">
-            <router-link to="enter">
-              入驻
-            </router-link>
-          </a-menu-item>
-        </a-menu>
-        <div style="margin-top: 10px;width: 360px">
-          <a-input-group compact v-if="selectedKeys[0] ==='1' || selectedKeys[0] ==='2'">
-            <a-select default-value="1" style="width: 110px">
-              <a-select-option value="1">
-                {{getPlaceholder()}}名
-              </a-select-option>
-              <a-select-option value="2">
-                {{getPlaceholder()}}slug
-              </a-select-option>
-              <a-select-option value="3">
-                供应商名称
-              </a-select-option>
-            </a-select>
-            <a-input style="width: 67%" :placeholder="'搜索'+getPlaceholder()+'...'"/>
-          </a-input-group>
-        </div>
-      </div>
-    </a-layout-header>
-    <a-layout-content style="padding: 0 0;">
-      <div style="margin: 10px 0">
-        此应用市场由<a href="https://wp-china.org" target="_blank" rel="noopener noreferrer" title="WP中国本土化社区">WP中国本土化社区</a>维护，系开源、公益、中立之项目，对开发者及用户双向免费，提供此平台意在繁荣国内WordPress之生态。
-      </div>
-      <div :style="{ paddingTop: '10px', minHeight: '400px' }">
-        <router-view></router-view>
-      </div>
-    </a-layout-content>
     <!--
     <a-layout-footer style="background: transparent; padding: 0 0;">
       <h2>赞助商</h2>
@@ -70,41 +13,112 @@
       </p>
     </a-layout-footer>
     -->
-  </a-layout>
+  <a-tabs v-if="true" v-model:activeKey="activeKey" @change="tabChange">
+    <a-tab-pane key="plugins" tab="插件">
+      <page-header-title />
+      <Plugins ref="plugins" />
+    </a-tab-pane>
+    <a-tab-pane key="themes" tab="主题">
+      <page-header-title />
+      <Themes  ref="themes"/>
+    </a-tab-pane>
+    <a-tab-pane key="account" tab="已购">
+      <page-header-title />
+      <Account  ref="account"/>
+    </a-tab-pane>
+    <a-tab-pane key="enterSupplier" tab="入驻">
+      <page-header-title />
+     <EnterSupplier  ref="enterSupplier"/>
+    </a-tab-pane>
+    <template #tabBarExtraContent>
+      <div style="margin-top: 10px;width: 360px">
+        <a-input-group compact v-if="activeKey ==='plugins' || activeKey ==='themes'">
+          <a-select default-value="search" style="width: 120px" v-model:value="searchType">
+            <a-select-option value="search">
+              {{getPlaceholder()}}名
+            </a-select-option>
+            <a-select-option value="slug">
+              {{getPlaceholder()}}slug
+            </a-select-option>
+            <a-select-option value="3">
+              供应商名称
+            </a-select-option>
+          </a-select>
+          <a-select v-if="searchType==='3'" style="width: 200px" placeholder="请选择供应商...">
+            <a-select-option value="Option2-1">
+              Option2-1
+            </a-select-option>
+            <a-select-option value="Option2-2">
+              Option2-2
+            </a-select-option>
+          </a-select>
+
+          <a-input v-model:value="searchInput" style="width: 200px" :placeholder="'搜索'+getPlaceholder()+'...'" @pressEnter="inputPressEnter" v-else />
+        </a-input-group>
+      </div>
+    </template>
+  </a-tabs>
 </template>
+
 <script>
-import QueryString from 'querystring'
+import Account from '@/views/Account.vue';
+import Plugins from '@/views/Plugins.vue';
+import EnterSupplier from '@/views/EnterSupplier.vue';
+import Themes from '@/views/Themes.vue';
+import PageHeaderTitle from '@/components/PageHeaderTitle.vue';
 
 export default {
+  components: {
+    Themes,
+    Account,
+    Plugins,
+    EnterSupplier,
+    PageHeaderTitle,
+  },
   data() {
     return {
       selectedKeys: ['1'],
+      activeKey:'plugins',
+      searchType:'search',
+      searchInput:''
     };
   },
   created() {
-    const store_url = 'https://mall.wp-china.org';
-    const endpoint = '/wc-auth/v1/authorize';
-    const params = {
-      app_name: '挑大粪的啦',
-      scope: 'read_write',
-      user_id: 123,
-      return_url: 'http://app.com/return-page',
-      callback_url: 'https://app.com/callback-endpoint'
-    };
-    const query_string = QueryString.stringify(params).replace(/%20/g, '+');
-
-    console.log(store_url + endpoint + '?' + query_string);
 
   },
   methods:{
       getPlaceholder(){
-          return this.selectedKeys[0] === '1' ? '插件' : '主题';
+          return this.activeKey === 'plugins' ? '插件' : '主题';
+      },
+      tabChange(key){
+        this.searchInput='';
+        this.searchType='search';
+        if( this.$refs[key] ) {
+          this.$refs[key].pageReload('');
+        }
+      },
+      inputPressEnter(){
+        if( this.$refs[this.activeKey] ) {
+          this.$refs[this.activeKey].pageReload(`&${this.searchType}=${this.searchInput}`);
+        }
       }
+  },
+  watch:{
+    searchType(){
+      this.searchInput='';
+    }
   }
 };
 </script>
 <style scoped>
   :global(.ant-menu-horizontal){
      border: none !important;
+  }
+  :global(.ant-tabs-bar){
+    background-color: #FFF !important;
+    height: 52px;
+  }
+  :global(.ant-tabs-nav .ant-tabs-tab){
+    padding: 16px !important;
   }
 </style>
