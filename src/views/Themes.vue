@@ -1,5 +1,4 @@
 <template>
-
       <a-card style="margin: 10px 0">
         <p style="margin-bottom: 5px;">
           主题价格：
@@ -49,7 +48,7 @@
           :lg="8"
           :md="8"
           :xs="12"
-          v-for="item in themesList"
+          v-for="(item,i) in themesList"
           :key="item"
       >
         <a-card hoverable class="themes-item-container">
@@ -60,7 +59,7 @@
                   style="width: 100%;height: 240px"
                   :src="item.thumbnail"
               />
-              <a href="#">
+              <a @click="openDetailModal(i)">
                 <div class="mask">
                   <span class="more-details">详情&预览</span>
                 </div>
@@ -69,14 +68,14 @@
           </template>
           <div class="themes-item-bottom-container">
             <div class="themes-item-title">{{item.name}}</div>
-            <div :class="buttonLoadingKeys.indexOf(item.id) > -1 ? '' : 'themes-item-handle-button-css'">
+            <div :class="buttonLoadingKeys.indexOf(item.id) > -1 ? '' : 'themes-item-handle-button-css'" :style="item.action_text === '启用' || item.action_text === '已启用' ? 'display:flex':''">
               <a-button
                   v-if="item.price==='0' || item.price===''"
                   style="margin-right: 10px"
                   :type="item.action_text === '启用' ? 'primary' :'default'"
                   :size="100"
                   :disabled="item.action_text === '已启用'"
-                  @click="themesHandle(item)"
+                  @click="themesHandle(item,i)"
                   :loading="buttonLoadingKeys.indexOf(item.id) > -1"
               >
                 {{ item.action_text }}
@@ -84,7 +83,7 @@
               <a-button v-else>
                 ￥{{ item.price }} 购买
               </a-button>
-              <a-button>
+              <a-button @click="openPreviewPage(item.preview_url)">
                 预览
               </a-button>
             </div>
@@ -98,64 +97,88 @@
   </div>
 
 
-  <a-modal :bodyStyle="{ paddingTop: '0px' }" :mask=false :closable=false width="800px" v-model:visible="shopInfoVisible" @ok="handleOk">
+  <a-modal :bodyStyle="{ paddingTop: '0px' }" :mask=false :closable=false :width="modalWidth" v-model:visible="shopInfoVisible" @ok="handleOk">
+    <div>
+      <div style="display: flex;justify-content: space-between" class="modal-title-container">
+      <div style="display: flex;">
+        <div :class=" detailIndex === 0 ? 'left-icon-container-disabled' : 'left-icon-container'" @click="leftDetail">
+          <LeftOutlined />
+        </div>
+        <div :class="detailIndex+1 === themesList.length ? 'right-icon-container-disabled' : 'right-icon-container'" @click="rightDetail">
+          <RightOutlined />
+        </div>
+      </div>
+      <div class="close-icon-container" @click="handleCancel">
+        <CloseOutlined />
+      </div>
+      </div>
+      <div style="padding: 30px;height: 500px;overflow: auto;margin-right: -24px;">
+        <a-row :gutter="20">
+          <a-col :span="14">
+            <img :src="themesList[detailIndex].thumbnail" alt="test" style="width: 100%"/>
+          </a-col>
+          <a-col :span="10">
+            <h2>{{ themesList[detailIndex].name }}<span class="versions-container">版本：{{ themesList[detailIndex].app_version }}</span></h2>
+            <h4>作者:<a :href="themesList[detailIndex].author.home">{{themesList[detailIndex].author.name}}</a></h4>
+            <p class="introduce-container">{{ themesList[detailIndex].description}}</p>
+            <p class="tag-container"><span style="color: #444; font-weight: 600; margin-right: 5px;">标签:</span> 两栏、三栏、边栏在左侧、边栏在右侧、translation-ready、自定义背景、自定义标志、特色图像、页脚小工具、占满宽度的模板、博客、电商、娱乐</p>
+          </a-col>
+        </a-row>
+      </div>
+    </div>
     <template v-slot:footer>
       <a-button key="back" @click="handleCancel">
         关闭
       </a-button>
-      <a-button key="submit" type="primary" :loading="shopInfoLoading" @click="handleOk">
+      <a-button @click="openPreviewPage(themesList[detailIndex].preview_url)">
+        预览
+      </a-button>
+      <a-button
+          v-if="themesList[detailIndex]&&(themesList[detailIndex].price==='0' || themesList[detailIndex].price==='')"
+          style="margin-right: 10px"
+          :type="themesList[detailIndex].action_text === '启用' ? 'primary' :'default'"
+          :size="100"
+          :disabled="themesList[detailIndex].action_text === '已启用'"
+          @click="themesHandle(themesList[detailIndex],detailIndex)"
+          :loading="buttonLoadingKeys.indexOf(themesList[detailIndex].id) > -1"
+      >
+        {{ themesList[detailIndex].action_text }}
+      </a-button>
+      <a-button v-else key="submit" type="primary" :loading="shopInfoLoading" @click="handleOk">
         <ShoppingOutlined /> 购买
       </a-button>
     </template>
-    <a-tabs @change="callback">
-      <a-tab-pane key="1" tab="描述">
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-        Content of Tab Pane 1
-      </a-tab-pane>
-      <a-tab-pane key="2" tab="截图">
-        Content of Tab Pane 2
-      </a-tab-pane>
-      <a-tab-pane key="3" tab="安装">
-        Content of Tab Pane 2
-      </a-tab-pane>
-      <a-tab-pane key="4" tab="修订历史">
-        Content of Tab Pane 3
-      </a-tab-pane>
-      <a-tab-pane key="5" tab="评价">
-        Content of Tab Pane 3
-      </a-tab-pane>
-    </a-tabs>
+    <template v-slot:closeIcon>
+      <CloseOutlined />
+    </template>
   </a-modal>
 </template>
 
 <script>
 import {
   ShoppingOutlined,
+  CloseOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons-vue';
 import queryString from "querystring";
 import Common from "@/components/Common";
 import {getQueryVariable} from "@/utils/utils.ts";
+import {notification} from "_ant-design-vue@2.0.0-rc.5@ant-design-vue";
 export default {
   components: {
     ShoppingOutlined,
+    CloseOutlined,
+    LeftOutlined,
+    RightOutlined,
   },
   name: "Plugins",
   data() {
     return {
       shopInfoLoading: false,
       shopInfoVisible: false,
-
+      detailIndex:0,
+      modalWidth:'50%',
       loading: false,
       themesList:[],
       shopTotal: 0,
@@ -166,10 +189,37 @@ export default {
     };
   },
   methods: {
-    themesHandle(data){
-      console.log(data);
+    openPreviewPage(url){
+      // window.top.location.href = url;
+      window.open(url);
+    },
+    themesHandle(theme_data,index){
       // 增加loading
-      this.buttonLoadingKeys.push(data.id);
+      this.buttonLoadingKeys.push(theme_data.id);
+      if (theme_data.action_text === '启用'){
+        window.top.location.href = theme_data.activate_url;
+      }else{
+      this.axios.post('/wp-json/wcy/v1/themes/install', {
+        slug: theme_data.slug,
+        downloadLink: theme_data.download_url
+      }, {headers: {
+          'X-WP-Nonce': getQueryVariable('_wpnonce')
+        }}).then((res)=>{
+          if(res.data.success){
+            this.themesList[index].action_text = '启用';
+            this.themesList[index].activate_url = res.data.data.activateUrl;
+            this.themesList.splice(this.themesList.indexOf(theme_data.id),1);
+            notification.success({
+              message: '安装成功',
+              description:'',
+            })
+          }
+        this.buttonLoadingKeys.splice(this.buttonLoadingKeys.indexOf(theme_data.id),1);
+      }).catch((e) => {
+          console.log(e);
+          this.buttonLoadingKeys.splice(this.buttonLoadingKeys.indexOf(theme_data.id),1);
+        })
+      }
     },
     getThemesList(){
       this.themesList=[];
@@ -218,7 +268,8 @@ export default {
     handleClick() {
       this.loading = !this.loading;
     },
-    showModal() {
+    openDetailModal(index) {
+      this.detailIndex=index;
       this.shopInfoVisible = true;
     },
     handleOk() {
@@ -237,10 +288,44 @@ export default {
     pageReload(query){
       this.searchQuery=query;
       this.getThemesList();
-    }
+    },
+    leftDetail(){
+      if(this.detailIndex===0){
+        return;
+      }
+      this.detailIndex-=1;
+    },
+    rightDetail(){
+      if(this.detailIndex+1===this.themesList.length){
+        return;
+      }
+      this.detailIndex+=1;
+    },
+    pageOnresize(){
+
+
+      if(document.body.clientWidth > 1500){
+        this.modalWidth='70%';
+      }else if(document.body.clientWidth < 800){
+        this.modalWidth='100%';
+      }else if(document.body.clientWidth < 1300){
+        this.modalWidth='80%';
+      } else{
+        this.modalWidth='80%';
+      }
+    },
+
   },
+
   created() {
+    this.pageOnresize();
     this.getThemesList();
+    window.onresize = () => {
+      return (() => {
+        console.log(document.body.clientWidth)
+       this.pageOnresize();
+      })()
+    }
   }
 }
 </script>
@@ -304,6 +389,66 @@ export default {
   text-align: center;
   border-radius: 3px;
   transition: opacity .1s ease-in-out;
+}
+.modal-title-container{
+  display: flex;
+  justify-content: space-between;
+  height: 40px;
+  margin: 0 -24px;
+  border-bottom: 1px solid #ddd;
+}
+
+.left-icon-container,
+.right-icon-container,
+.close-icon-container,
+.left-icon-container-disabled,
+.right-icon-container-disabled{
+  line-height: 40px;
+  width: 40px;
+  text-align: center;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.left-icon-container:hover, .right-icon-container:hover,.close-icon-container:hover{
+  background: #DDDDDD;
+}
+.left-icon-container,.left-icon-container-disabled{
+  border-bottom: none;
+  border-right: none;
+}
+
+.left-icon-container-disabled,.right-icon-container-disabled{
+  color:#ddd
+}
+
+.right-icon-container,.close-icon-container,.right-icon-container-disabled{
+  border-bottom: none;
+}
+.versions-container{
+  color: #72777c;
+  font-size: 13px;
+  font-weight: 400;
+  float: none;
+  display: inline-block;
+  margin-left: 10px;
+}
+.introduce-container{
+  text-indent: 10px;
+  color: #555;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 30px 0 0 0;
+}
+.tag-container{
+  border-top: 3px solid #eee;
+  color: #82878c;
+  font-size: 13px;
+  font-weight: 400;
+  margin: 30px 0 0 0;
+  padding-top: 20px;
 }
 
 </style>
