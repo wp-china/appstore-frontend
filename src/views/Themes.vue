@@ -164,7 +164,7 @@ import {
 import queryString from "querystring";
 import Common from "@/components/Common";
 import {getQueryVariable} from "@/utils/utils.ts";
-import {notification} from "_ant-design-vue@2.0.0-rc.5@ant-design-vue";
+import {notification} from "ant-design-vue";
 export default {
   components: {
     ShoppingOutlined,
