@@ -1,19 +1,16 @@
 <template>
-      <a-card style="margin: 10px 0">
-        <p style="margin-bottom: 5px;">
+      <a-card style="margin: 10px 0;border: 1px solid #ddd;">
+        <p style="margin-bottom: 5px">
           主题价格：
-          <a-radio-group :value="a" @change="onChange">
-            <a-radio-button value="a">
+          <a-radio-group  @change="searchPriceChange" default-value="0" >
+            <a-radio-button value="0">
               全部
             </a-radio-button>
-            <a-radio-button value="b">
-              免费
-            </a-radio-button>
-            <a-radio-button value="c">
+            <a-radio-button value="1">
               付费
             </a-radio-button>
-            <a-radio-button value="d">
-              含免费
+            <a-radio-button value="2">
+              免费
             </a-radio-button>
           </a-radio-group>
         </p>
@@ -41,7 +38,7 @@
   <a-skeleton :loading="loading" active/>
 
   <div class="themes-all-container">
-    <a-row :gutter="[24, 24]">
+    <a-row :gutter="[40, 40]">
       <a-col
           :xxl="6"
           :xl="6"
@@ -54,11 +51,15 @@
         <a-card hoverable class="themes-item-container">
           <template #cover>
             <div class="img_div">
-              <img
-                  alt="example"
-                  style="width: 100%;height: 240px"
-                  :src="item.thumbnail"
-              />
+              <div>
+                <img
+                    v-if="item.thumbnail"
+                    alt="example"
+                    style="width: 100%;height: 300px"
+                    :src="item.thumbnail"
+                    class="img-con"
+                />
+              </div>
               <a @click="openDetailModal(i)">
                 <div class="mask">
                   <span class="more-details">详情&预览</span>
@@ -80,7 +81,7 @@
               >
                 {{ item.action_text }}
               </a-button>
-              <a-button v-else>
+              <a-button v-else style="margin-right: 10px">
                 ￥{{ item.price }} 购买
               </a-button>
               <a-button @click="openPreviewPage(item.preview_url)">
@@ -145,7 +146,7 @@
         {{ themesList[detailIndex].action_text }}
       </a-button>
       <a-button v-else key="submit" type="primary" :loading="shopInfoLoading" @click="handleOk">
-        <ShoppingOutlined /> 购买
+        <ShoppingOutlined /> ￥{{ themesList[detailIndex].price }} 购买
       </a-button>
     </template>
     <template v-slot:closeIcon>
@@ -177,6 +178,7 @@ export default {
     return {
       shopInfoLoading: false,
       shopInfoVisible: false,
+      searchPrice:'0',
       detailIndex:0,
       modalWidth:'50%',
       loading: false,
@@ -234,6 +236,13 @@ export default {
               per_page:12,
               category:17,
             };
+            // 主题价格
+            if(this.searchPrice === '1'){
+              params.min_price=0.01;
+            }
+            if(this.searchPrice==='2'){
+              params.max_price=0.01;
+            }
             Common.WooCommerce.get("products/?" + queryString.stringify(params)+this.searchQuery)
                 .then((all) => {
                   const allThemes = all.data;
@@ -302,8 +311,8 @@ export default {
       this.detailIndex+=1;
     },
     pageOnresize(){
-
-
+      const aaa = window.document.getElementsByClassName('img-con');
+      console.log('1',aaa);
       if(document.body.clientWidth > 1500){
         this.modalWidth='70%';
       }else if(document.body.clientWidth < 800){
@@ -314,7 +323,44 @@ export default {
         this.modalWidth='80%';
       }
     },
+    newOrder(i) {
+      this.shops[i].spinning = true;
+      // 下单
+      const data = {
+        payment_method: "alipay",
+        payment_method_title: "支付宝",
+        line_items: [
+          {
+            product_id: this.shops[i].id,
+            quantity: 1
+          }
+        ]
+      };
 
+      Common.WooCommerce.post("orders", data)
+          .then((response) => {
+            // 换取支付宝支付网关URL
+            const params = {
+              key: response.data.order_key,
+              return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes1%2Fwp-china-yes.php&appstore_path=account'
+            };
+            var paymentWindow = window.open();
+
+            paymentWindow.location.href = 'https://mall.wp-china.org/checkout/order-pay/' + response.data.id + '?' + queryString.stringify(params);
+
+            this.shops[i].spinning = false;
+
+            console.log(response.data);
+          })
+          .catch((error) => {
+            console.log(error.response.data);
+          });
+    },
+    searchPriceChange(e){
+      this.searchPrice=e.target.value
+      this.page=1;
+      this.getThemesList();
+    },
   },
 
   created() {
@@ -351,6 +397,9 @@ export default {
 
 .themes-item-container:hover  .themes-item-handle-button-css{
   display: block;
+}
+.themes-item-container{
+ border: 2px solid #ddd !important;
 }
 
 .img_div {

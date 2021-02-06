@@ -13,7 +13,7 @@
       </p>
     </a-layout-footer>
     -->
-  <a-tabs v-if="true" v-model:activeKey="activeKey" @change="tabChange">
+  <a-tabs v-if="true" v-model:activeKey="activeKey" @change="tabChange" >
     <a-tab-pane key="plugins" tab="插件">
       <page-header-title />
       <Plugins ref="plugins" />
@@ -36,9 +36,6 @@
           <a-select default-value="search" style="width: 120px" v-model:value="searchType">
             <a-select-option value="search">
               {{getPlaceholder()}}名
-            </a-select-option>
-            <a-select-option value="slug">
-              {{getPlaceholder()}}slug
             </a-select-option>
             <a-select-option value="3">
               供应商名称
@@ -119,5 +116,8 @@ export default {
   }
   :global(.ant-tabs-nav .ant-tabs-tab){
     padding: 16px !important;
+  }
+  :global(.ant-tabs-bar){
+    border: 1px solid #ddd !important;
   }
 </style>

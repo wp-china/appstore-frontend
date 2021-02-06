@@ -1,6 +1,6 @@
 <template>
   <div v-if="pageDisable">
-    <a-card style="margin: 10px 0">
+    <a-card style="margin: 10px 0; border:1px solid #ddd">
       <p style="margin-bottom: 5px;">
         插件价格：
         <a-radio-group  @change="searchPriceChange" default-value="0" >
@@ -52,7 +52,7 @@
         :xs="24"
     >
       <a-spin tip="下单中" :spinning="shop.spinning">
-        <a-card>
+        <a-card style="border: 1px solid #ddd;" body-style="border-bottom: 1px solid #ddd;">
           <div style="display: flex;justify-content: space-between">
             <div style="width: 140px">
               <a-card-meta>

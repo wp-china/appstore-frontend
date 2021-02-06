@@ -1,6 +1,6 @@
 <template>
   <div class="detail-container">
-    <a-tabs @change="shopInfoCallback">
+    <a-tabs @change="shopInfoCallback" v-model:activeKey="activeKey">
       <a-tab-pane key="1" tab="描述">
         <BasicInformation :detailData="detailData">
           <template v-slot:content>
@@ -88,6 +88,7 @@
     import Common from "./Common";
     import queryString from "querystring";
     export default {
+      name: "Detail",
       components: {
           BasicInformation,
       },
@@ -101,9 +102,14 @@
           return{
               comments:[],
               commentTotal:0,
+              activeKey:'1',
           }
         },
-      name: "Detail",
+      watch:{
+        detailData(){
+        this.activeKey='1';
+        }
+      },
       methods:{
           shopInfoCallback(key) {
               if ('6' === key) {
@@ -129,7 +135,7 @@
               }
           },
       },
-    }
+    };
 </script>
 <style scoped>
   .detail-container img{
