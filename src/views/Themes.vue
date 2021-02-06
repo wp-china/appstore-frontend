@@ -58,7 +58,7 @@
                 <img
                     v-if="item.thumbnail"
                     alt="example"
-                    style="width: 100%"
+                    style="width: 384px;height:288px"
                     :src="item.thumbnail"
                     class="img-con"
                 />
