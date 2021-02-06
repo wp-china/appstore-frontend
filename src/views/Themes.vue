@@ -14,23 +14,26 @@
             </a-radio-button>
           </a-radio-group>
         </p>
-        <p style="margin: 0;">
-          主题分类：
-          <a-radio-group :value="a" @change="onChange">
+        <p style="margin-bottom: 5px;">
+          排序方式：
+          <a-radio-group default-value="a" >
             <a-radio-button value="a">
-              全部
+              更新日期
             </a-radio-button>
             <a-radio-button value="b">
-              ooxx
+              价格
             </a-radio-button>
             <a-radio-button value="c">
-              ooxx
-            </a-radio-button>
-            <a-radio-button value="d">
-              ooxx
+              销量
             </a-radio-button>
           </a-radio-group>
         </p>
+        <div class="hot-label-container">
+          热门标签：
+          <a-tag v-for="item in labelList" :key="item.id" :color=" selectedLabelIds.indexOf(item.id) > -1 ?  'blue' : ''" @click="hotLabelTagClick(item.id)" >
+            {{item.name}}
+          </a-tag>
+        </div>
       </a-card>
 
   <a-skeleton :loading="loading" active/>
@@ -55,7 +58,7 @@
                 <img
                     v-if="item.thumbnail"
                     alt="example"
-                    style="width: 100%;height: 300px"
+                    style="width: 100%"
                     :src="item.thumbnail"
                     class="img-con"
                 />
@@ -120,7 +123,7 @@
           </a-col>
           <a-col :span="10">
             <h2>{{ themesList[detailIndex].name }}<span class="versions-container">版本：{{ themesList[detailIndex].app_version }}</span></h2>
-            <h4>作者:<a :href="themesList[detailIndex].author.home">{{themesList[detailIndex].author.name}}</a></h4>
+            <h4>作者:<a :href="themesList[detailIndex].author ? themesList[detailIndex].author.home : ''">{{themesList[detailIndex].author.name}}</a></h4>
             <p class="introduce-container">{{ themesList[detailIndex].description}}</p>
             <p class="tag-container"><span style="color: #444; font-weight: 600; margin-right: 5px;">标签:</span> 两栏、三栏、边栏在左侧、边栏在右侧、translation-ready、自定义背景、自定义标志、特色图像、页脚小工具、占满宽度的模板、博客、电商、娱乐</p>
           </a-col>
@@ -187,7 +190,8 @@ export default {
       page:1,
       searchQuery:'',
       buttonLoadingKeys:[],
-
+      labelList:[],
+      selectedLabelIds:[],
     };
   },
   methods: {
@@ -231,6 +235,10 @@ export default {
           'X-WP-Nonce': getQueryVariable('_wpnonce')
         }}).then((response) => {
           if(response.data.success){
+            // 获取热门标签
+            this.axios.get('https://mall.wp-china.org/wp-json/was/v1/products/tags?order=desc&orderby=count').then((data)=>{
+              this.labelList=data.data;
+            })
             const params = {
               page:this.page,
               per_page:12,
@@ -322,6 +330,14 @@ export default {
       } else{
         this.modalWidth='80%';
       }
+    },
+    hotLabelTagClick(id){
+      if(this.selectedLabelIds.indexOf(id) >-1){
+        this.selectedLabelIds.splice(this.selectedLabelIds.indexOf(id),1);
+      }else{
+        this.selectedLabelIds.push(id);
+      }
+      // TODO 调用查询
     },
     newOrder(i) {
       this.shops[i].spinning = true;
@@ -498,6 +514,23 @@ export default {
   font-weight: 400;
   margin: 30px 0 0 0;
   padding-top: 20px;
+}
+.hot-label-container{
+  line-height: 32px;
+}
+:global(.hot-label-container .ant-tag){
+  padding: 4px 8px !important;
+  cursor: pointer;
+  font-size: 14px !important;
+  margin-bottom: 8px;
+  background: #ffffff;
+}
+:global(.hot-label-container .ant-tag:hover){
+  padding: 4px 8px !important;
+  cursor: pointer;
+  color:#1890ff;
+  font-size: 14px !important;
+  margin-bottom: 8px;
 }
 
 </style>

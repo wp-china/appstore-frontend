@@ -19,13 +19,13 @@
         排序方式：
         <a-radio-group default-value="a" @change="searchSortChange">
           <a-radio-button value="a">
-            综合
+            更新日期
           </a-radio-button>
           <a-radio-button value="b">
-            热门
+            价格
           </a-radio-button>
           <a-radio-button value="c">
-            最新
+            销量
           </a-radio-button>
         </a-radio-group>
       </p>
