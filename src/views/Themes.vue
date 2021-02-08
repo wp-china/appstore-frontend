@@ -14,17 +14,20 @@
             </a-radio-button>
           </a-radio-group>
         </p>
-        <p style="margin-bottom: 5px;">
+        <p style="margin-bottom: 5px;"   @change="searchSortChange">
           排序方式：
-          <a-radio-group default-value="a" >
-            <a-radio-button value="a">
-              更新日期
+          <a-radio-group default-value="0" >
+            <a-radio-button value="0">
+              综合
             </a-radio-button>
-            <a-radio-button value="b">
-              价格
+            <a-radio-button value="price">
+              价格s
             </a-radio-button>
-            <a-radio-button value="c">
+            <a-radio-button value="include">
               销量
+            </a-radio-button>
+            <a-radio-button value="date">
+              更新日期
             </a-radio-button>
           </a-radio-group>
         </p>
@@ -41,12 +44,12 @@
   <a-skeleton :loading="loading" active/>
 
   <div class="themes-all-container">
-    <a-row :gutter="[40, 40]">
+    <a-row :gutter="[50, 40]">
       <a-col
           :xxl="6"
           :xl="6"
           :lg="8"
-          :md="8"
+          :md="12"
           :xs="12"
           v-for="(item,i) in themesList"
           :key="item"
@@ -58,9 +61,8 @@
                 <img
                     v-if="item.thumbnail"
                     alt="example"
-                    style="width: 384px;height:288px"
+                    style="width: 100%;height: 240px"
                     :src="item.thumbnail"
-                    class="img-con"
                 />
               </div>
               <a @click="openDetailModal(i)">
@@ -123,7 +125,7 @@
           </a-col>
           <a-col :span="10">
             <h2>{{ themesList[detailIndex].name }}<span class="versions-container">版本：{{ themesList[detailIndex].app_version }}</span></h2>
-            <h4>作者:<a :href="themesList[detailIndex].author ? themesList[detailIndex].author.home : ''">{{themesList[detailIndex].author.name}}</a></h4>
+            <h4>作者:<a :href="themesList[detailIndex].author ? themesList[detailIndex].author.home : ''"  target="_blank">{{themesList[detailIndex].author ?themesList[detailIndex].author.name:'WP中国本土应用市场'}}</a></h4>
             <p class="introduce-container">{{ themesList[detailIndex].description}}</p>
             <p class="tag-container"><span style="color: #444; font-weight: 600; margin-right: 5px;">标签:</span> 两栏、三栏、边栏在左侧、边栏在右侧、translation-ready、自定义背景、自定义标志、特色图像、页脚小工具、占满宽度的模板、博客、电商、娱乐</p>
           </a-col>
@@ -156,6 +158,7 @@
       <CloseOutlined />
     </template>
   </a-modal>
+  <notice-modal ref="noticeModal" :shopDetail="shopDetail"/>
 </template>
 
 <script>
@@ -169,12 +172,15 @@ import queryString from "querystring";
 import Common from "@/components/Common";
 import {getQueryVariable} from "@/utils/utils.ts";
 import {notification} from "ant-design-vue";
+import NoticeModal from '@/components/NoticeModal'
+
 export default {
   components: {
     ShoppingOutlined,
     CloseOutlined,
     LeftOutlined,
     RightOutlined,
+    NoticeModal,
   },
   name: "Plugins",
   data() {
@@ -189,9 +195,11 @@ export default {
       shopTotal: 0,
       page:1,
       searchQuery:'',
+      orderBy:'0',
       buttonLoadingKeys:[],
       labelList:[],
       selectedLabelIds:[],
+      shopDetail:{},
     };
   },
   methods: {
@@ -236,13 +244,14 @@ export default {
         }}).then((response) => {
           if(response.data.success){
             // 获取热门标签
-            this.axios.get('https://mall.wp-china.org/wp-json/was/v1/products/tags?order=desc&orderby=count').then((data)=>{
+            this.axios.get('https://appstore.wp-china-yes.cn/wp-content/uploads/appstore/json/theme/tags.json').then((data)=>{
               this.labelList=data.data;
             })
             const params = {
               page:this.page,
               per_page:12,
               category:17,
+              order:'desc',
             };
             // 主题价格
             if(this.searchPrice === '1'){
@@ -250,6 +259,9 @@ export default {
             }
             if(this.searchPrice==='2'){
               params.max_price=0.01;
+            }
+            if(this.orderBy !== '0'){
+              params.orderby=this.orderBy;
             }
             Common.WooCommerce.get("products/?" + queryString.stringify(params)+this.searchQuery)
                 .then((all) => {
@@ -319,8 +331,6 @@ export default {
       this.detailIndex+=1;
     },
     pageOnresize(){
-      const aaa = window.document.getElementsByClassName('img-con');
-      console.log('1',aaa);
       if(document.body.clientWidth > 1500){
         this.modalWidth='70%';
       }else if(document.body.clientWidth < 800){
@@ -339,44 +349,20 @@ export default {
       }
       // TODO 调用查询
     },
-    newOrder(i) {
-      this.shops[i].spinning = true;
-      // 下单
-      const data = {
-        payment_method: "alipay",
-        payment_method_title: "支付宝",
-        line_items: [
-          {
-            product_id: this.shops[i].id,
-            quantity: 1
-          }
-        ]
-      };
-
-      Common.WooCommerce.post("orders", data)
-          .then((response) => {
-            // 换取支付宝支付网关URL
-            const params = {
-              key: response.data.order_key,
-              return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes1%2Fwp-china-yes.php&appstore_path=account'
-            };
-            var paymentWindow = window.open();
-
-            paymentWindow.location.href = 'https://mall.wp-china.org/checkout/order-pay/' + response.data.id + '?' + queryString.stringify(params);
-
-            this.shops[i].spinning = false;
-
-            console.log(response.data);
-          })
-          .catch((error) => {
-            console.log(error.response.data);
-          });
+    newOrder(data) {
+      this.shopDetail=data;
+      this.$refs.noticeModal.noticeVisible=true;
     },
     searchPriceChange(e){
       this.searchPrice=e.target.value
       this.page=1;
       this.getThemesList();
     },
+    searchSortChange(e){
+      this.orderBy=e.target.value;
+      this.page=1;
+      this.getThemesList();
+    }
   },
 
   created() {

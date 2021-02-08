@@ -9,7 +9,7 @@ const getConsumerSecret = () => {
     return  cookie.get('consumer_secret');
 }
 const WooCommerce = new WooCommerceRestApi({
-  url: 'https://appstore.wp-china-yes.cn',
+  url: 'https://appstore.wp-china-yes.cn/',
   consumerKey: getConsumerKey,
   consumerSecret: getConsumerSecret,
   version: 'was/v1'

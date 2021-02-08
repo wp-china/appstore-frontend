@@ -37,19 +37,16 @@
             <a-select-option value="search">
               {{getPlaceholder()}}名
             </a-select-option>
-            <a-select-option value="3">
+            <a-select-option value="vendor">
               供应商名称
             </a-select-option>
           </a-select>
-          <a-select v-if="searchType==='3'" style="width: 200px" placeholder="请选择供应商...">
-            <a-select-option value="Option2-1">
-              Option2-1
-            </a-select-option>
-            <a-select-option value="Option2-2">
-              Option2-2
+          <a-select v-if="searchType==='vendor'" style="width: 200px" placeholder="请选择供应商..." show-search :filter-option="filterOption" @change="inputPressEnter" allowClear>
+            <a-select-option v-for="item in supplierList" :key="item.id" :value="item.name">
+              {{ item.name }}
             </a-select-option>
           </a-select>
-          <a-input v-model:value="searchInput" style="width: 200px" :placeholder="'搜索'+getPlaceholder()+'...'" @pressEnter="inputPressEnter" v-else />
+          <a-input v-model:value="searchInput" style="width: 200px" :placeholder="'搜索'+getPlaceholder()+'...'" @pressEnter="inputPressEnter(null,null)" v-else />
         </a-input-group>
       </div>
     </template>
@@ -76,13 +73,18 @@ export default {
       selectedKeys: ['1'],
       activeKey:'plugins',
       searchType:'search',
-      searchInput:''
+      searchInput:'',
+      supplierList:[],
     };
   },
   created() {
-
+    this.getSupplierList();
   },
+
   methods:{
+    filterOption(input,option){
+      return option.value.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+    },
       getPlaceholder(){
           return this.activeKey === 'plugins' ? '插件' : '主题';
       },
@@ -93,11 +95,17 @@ export default {
           this.$refs[key].pageReload('');
         }
       },
-      inputPressEnter(){
+      inputPressEnter(data,option){
         if( this.$refs[this.activeKey] ) {
-          this.$refs[this.activeKey].pageReload(`&${this.searchType}=${this.searchInput}`);
+          this.$refs[this.activeKey].pageReload(`&${this.searchType}=${data ? option.key : this.searchInput}`);
         }
-      }
+      },
+      getSupplierList(){
+        this.axios.get('https://appstore.wp-china-yes.cn/wp-json/wp/v2/product-vendors?_fields=id,count,name,slug&search=test').then((data)=>{
+          this.supplierList=data.data;
+        })
+      },
+
   },
   watch:{
     searchType(){

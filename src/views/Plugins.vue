@@ -17,15 +17,18 @@
       </p>
       <p style="margin-bottom: 5px;">
         排序方式：
-        <a-radio-group default-value="a" @change="searchSortChange">
-          <a-radio-button value="a">
-            更新日期
+        <a-radio-group default-value="0" @change="searchSortChange">
+          <a-radio-button value="0">
+            综合
           </a-radio-button>
-          <a-radio-button value="b">
+          <a-radio-button value="price">
             价格
           </a-radio-button>
-          <a-radio-button value="c">
+          <a-radio-button value="include">
             销量
+          </a-radio-button>
+          <a-radio-button value="date">
+            更新日期
           </a-radio-button>
         </a-radio-group>
       </p>
@@ -73,7 +76,7 @@
                 -webkit-box-orient: vertical;"
                      v-html="shop.short_description">
                 </div>
-              <div class="card-author-container">开发者：<a>{{ shop.author && shop.author.name ? shop.author.name : shop.sold_by}}</a></div>
+              <div class="card-author-container">开发者：<a target="_blank" :href="shop.author && shop.author.home ? shop.author && shop.author.home : '#'">{{ shop.author && shop.author.name ? shop.author.name : shop.sold_by}}</a></div>
             </div>
             <div style="width: 120px;text-align: center">
               <div>
@@ -102,7 +105,7 @@
                 style="margin-top: 5px; margin-bottom: 5px;"
                 shape="round"
                 :size="100"
-                @click="newOrder(i)"
+                @click="newOrder(shop)"
               >
                 <template v-slot:icon>
                   <ShoppingOutlined/>
@@ -126,7 +129,9 @@
     </a-col>
   </a-row>
     <div style="text-align: right;margin-top: 10px" v-if="!loading">
-      <a-pagination :disabled="paginationDisable" @change=loadPageData :total="shopTotal"
+      <a-pagination
+          :disabled="paginationDisable"
+          @change=loadPageData :total="shopTotal"
                     :show-total="total => `共 ${total} 个项目`" :page-size="12" v-model:current="page"/>
     </div>
   <!--  modal  -->
@@ -145,18 +150,29 @@
       <a-button key="back" @click="handleCancel">
         关闭
       </a-button>
-      <a-button key="submit" type="primary" :loading="buttonLoadingIds.indexOf(detailData.id) > -1" @click="action(detailData,detailData.index)" :disabled="detailData.action_text === '已启用'">
-  <!--      <ShoppingOutlined/>-->
+      <a-button
+          key="submit"
+          type="primary"
+          :loading="buttonLoadingIds.indexOf(detailData.id) > -1"
+          @click="action(detailData,detailData.index)"
+          :disabled="detailData.action_text === '已启用'"
+          v-if="detailData.price==='0' || detailData.price===''"
+      >
         <CloudDownloadOutlined v-if="detailData.action_text === '安装'"/>
         <SettingOutlined v-if="detailData.action_text === '启用'"  />
         <LikeOutlined v-if="detailData.action_text === '已启用'"  />
         {{ detailData.action_text }}
       </a-button>
-    </template>
+        <a-button v-else @click="newOrder(detailData)">
+          <ShoppingOutlined/>
+          ￥{{detailData.price}} 购买
+       </a-button>
+      </template>
     </a-modal>
     <a-modal :mask="payment" :footer="null" :visible="false" title="支付宝扫码支付" @ok="handleOk">
       <p>这里是支付宝支付二维码……</p>
     </a-modal>
+    <notice-modal ref="noticeModal" :shopDetail="shopDetail"/>
   </div>
 </template>
 
@@ -173,6 +189,7 @@ import Common from '@/components/Common';
 import queryString from 'querystring';
 import { getQueryVariable } from '@/utils/utils.ts';
 import Detail from '@/components/Detail'
+import NoticeModal from '@/components/NoticeModal'
 
 export default {
   components: {
@@ -181,6 +198,7 @@ export default {
       SettingOutlined ,
       LikeOutlined,
       Detail,
+      NoticeModal,
   },
   name: "Plugins",
   data() {
@@ -200,6 +218,8 @@ export default {
       labelList:[],
       selectedLabelIds:[],
       searchQuery:'',
+      orderBy:'0',
+      shopDetail:null,
       detailData:{
         name:''
       },
@@ -236,38 +256,9 @@ export default {
             })
         }
     },
-    newOrder(i) {
-      this.shops[i].spinning = true;
-      // 下单
-      const data = {
-        payment_method: "alipay",
-        payment_method_title: "支付宝",
-        line_items: [
-          {
-            product_id: this.shops[i].id,
-            quantity: 1
-          }
-        ]
-      };
-
-      Common.WooCommerce.post("orders", data)
-          .then((response) => {
-            // 换取支付宝支付网关URL
-            const params = {
-              key: response.data.order_key,
-              return_url: window.location.protocol + '//' + window.location.host + '/wp-admin/admin.php?page=wp-china-yes1%2Fwp-china-yes.php&appstore_path=account'
-            };
-            var paymentWindow = window.open();
-
-            paymentWindow.location.href = 'https://mall.wp-china.org/checkout/order-pay/' + response.data.id + '?' + queryString.stringify(params);
-
-            this.shops[i].spinning = false;
-
-            console.log(response.data);
-          })
-          .catch((error) => {
-            console.log(error.response.data);
-          });
+    newOrder(data) {
+      this.shopDetail=data;
+      this.$refs.noticeModal.noticeVisible=true;
     },
     handleClick() {
       this.loading = !this.loading;
@@ -290,8 +281,9 @@ export default {
       this.shopInfoVisible = false;
     },
 
-    loadPageData() {
-      this.loading = true;
+      loadPageData() {
+
+        this.loading = true;
       this.paginationDisable = true;
       this.shops = null;
 
@@ -301,15 +293,19 @@ export default {
 
             if (response.data.success) {
               // 获取热门标签
-              this.axios.get('https://mall.wp-china.org/wp-json/was/v1/products/tags?order=desc&orderby=count').then((data)=>{
+
+              // 获取热门标签
+              this.axios.get('https://appstore.wp-china-yes.cn/wp-content/uploads/appstore/json/plugin/tags.json').then((data)=>{
                 this.labelList=data.data;
               })
+
                 this.cookie.set('consumer_key',response.data.data.appstore_key.consumer_key);
                 this.cookie.set('consumer_secret',response.data.data.appstore_key.consumer_secret);
                 const params = {
                     page: this.page,
                     per_page:12,
                     category:15,
+                    order:'desc',
                 };
               // 插件价格
               if(this.searchPrice === '1'){
@@ -317,6 +313,10 @@ export default {
               }
               if(this.searchPrice==='2'){
                 params.max_price=0.01;
+              }
+
+              if(this.orderBy !== '0'){
+                params.orderby=this.orderBy;
               }
 
                 queryString.stringify(params)
@@ -364,13 +364,11 @@ export default {
       this.page=1;
       this.loadPageData();
     },
-      searchSortChange(e){
-        console.log(e);
-        // this.searchPrice=e.target.value
-        // this.page=1;
-        // TODO 调用接口
+    searchSortChange(e){
+        this.orderBy=e.target.value;
+        this.page=1;
+        this.loadPageData();
     },
-
     hotLabelTagClick(id){
       if(this.selectedLabelIds.indexOf(id) >-1){
         this.selectedLabelIds.splice(this.selectedLabelIds.indexOf(id),1);
