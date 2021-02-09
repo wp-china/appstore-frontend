@@ -303,6 +303,7 @@ export default {
       this.loading = !this.loading;
     },
     openDetailModal(index) {
+      parent.window.scrollTo(0, 120);
       this.detailIndex=index;
       this.shopInfoVisible = true;
     },
