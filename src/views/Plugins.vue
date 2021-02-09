@@ -60,21 +60,14 @@
             <div style="width: 140px">
               <a-card-meta>
                 <template v-slot:avatar>
-                  <a-avatar shape="square" :size="128" :src="shop.thumbnail"/>
+                  <a-avatar shape="square" :size="128" :src="shop.thumbnail ? shop.thumbnail : ''"/>
                 </template>
               </a-card-meta>
             </div>
             <div class="card-title-content-container">
                 <div class="card-title-container" v-html="shop.name"></div>
-                <div style="
-                min-height: 70px;
-                height: 70px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                display: -webkit-box;
-                -webkit-line-clamp: 3;
-                -webkit-box-orient: vertical;"
-                     v-html="shop.short_description">
+
+                <div class="card-short_description-container" v-html="shop.short_description">
                 </div>
               <div class="card-author-container">开发者：<a target="_blank" :href="shop.author && shop.author.home ? shop.author && shop.author.home : '#'">{{ shop.author && shop.author.name ? shop.author.name : shop.sold_by}}</a></div>
             </div>
@@ -248,10 +241,15 @@ export default {
                         message: '安装成功',
                         description:'',
                     });
+                }else{
+                  notification.error({
+                    message: '安装失败',
+                    description:response.data.errorMessage,
+                  })
                 }
                 this.buttonLoadingIds.splice(this.buttonLoadingIds.indexOf(product_data.id),1);
             }).catch((e) => {
-                console.log(e);
+              console.log(e)
                 this.buttonLoadingIds.splice(this.buttonLoadingIds.indexOf(product_data.id),1);
             })
         }
@@ -264,10 +262,10 @@ export default {
       this.loading = !this.loading;
     },
    showModal(data,index) {
-        console.log(data);
       this.detailData= {...data,index};
       this.shopInfoVisible = true;
-    },
+     parent.window.scrollTo(0, 150);
+   },
 
     handleOk() {
     this.shopInfoLoading = true;
@@ -458,6 +456,15 @@ export default {
   color:#1890ff;
   font-size: 14px !important;
   margin-bottom: 8px;
+}
+.card-short_description-container{
+  min-height: 70px;
+  height: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 </style>

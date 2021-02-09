@@ -21,7 +21,7 @@
               综合
             </a-radio-button>
             <a-radio-button value="price">
-              价格s
+              价格
             </a-radio-button>
             <a-radio-button value="include">
               销量
@@ -227,6 +227,11 @@ export default {
               message: '安装成功',
               description:'',
             })
+          }else{
+            notification.error({
+              message: '安装失败',
+              description:res.data.errorMessage,
+            })
           }
         this.buttonLoadingKeys.splice(this.buttonLoadingKeys.indexOf(theme_data.id),1);
       }).catch((e) => {
@@ -311,9 +316,7 @@ export default {
     handleCancel() {
       this.shopInfoVisible = false;
     },
-    callback(key) {
-      console.log(key);
-    },
+
     pageReload(query){
       this.searchQuery=query;
       this.getThemesList();

@@ -192,6 +192,7 @@ export default {
               this.detailData = response.data;
               this.detailLoadingIds.splice(this.detailLoadingIds.indexOf(id),1);
               this.shopInfoVisible=true;
+                parent.window.scrollTo(0, 120);
           })
       },
       handleCancel(){
